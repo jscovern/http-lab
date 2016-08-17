@@ -1,38 +1,35 @@
-console.log("criminalsController.js");
 angular.module('CriminalsApp')
-  .controller('CriminalsController', CriminalsController);
+  .controller('CriminalsController', CriminalsController)
+  .factory("Criminals", function($resource) {
+    return $resource("http://localhost:3000/criminals/:id");
+  });
+  CriminalsController.$inject = ["$http","Criminals"];
 
-  CriminalsController.$inject = ["$http"];
-
-function CriminalsController($http){
+function CriminalsController($http, Criminals){
   var self = this;
   self.newCriminal={};
   self.addCriminal = addCriminal;
   self.deleteCriminal = deleteCriminal;
 
   function getCriminals() {
-  	$http.get('http://localhost:3000/criminals')
-  		.then(function(response) {
-  			self.all=response.data.criminals;
-  			console.log(response);
-  		});
-  	console.log("in getCriminals");
+    console.log(Criminals);
+    var temp = Criminals.get(function(response) {
+      self.all=response.criminals;
+      console.log(response);
+    });
   }
 
   function addCriminal() {
-  	console.log('in addCriminal');
-  	$http.post('http://localhost:3000/criminals',self.newCriminal)
-  		.then(function(response) {
-  			getCriminals();
-  		});
+    Criminals.save(self.newCriminal,function(response) {
+      getCriminals(); //refresh list on page
+    });
   }
 
   function deleteCriminal(criminalID) {
-  	console.log('in deleteCriminal '+criminalID);
-  	$http.delete('http://localhost:3000/criminals/'+criminalID)
-  		.then(function(response) {
-  			getCriminals();
-  		});
+    console.log("in delete, with an id of "+criminalID);
+    Criminals.delete({id: criminalID},function(response) {
+      getCriminals(); //refresh list on page
+    });
   }
 
   getCriminals();
